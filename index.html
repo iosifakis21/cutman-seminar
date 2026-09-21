@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Σεμινάριο Cutman &amp; Hand Wrapping — Michalis Sioulis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Condensed:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: dark;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+
+    --ink:      #07090a;
+    --ink-2:    #0e1113;
+    --gauze:    #ece8dd;
+    --gauze-dim:#9aa09d;
+    --acid:     #8ce01b;
+    --gold:     #f2b705;
+    --blood:    #c3190f;
+    --line:     rgba(236,232,221,.14);
+
+    --col: min(640px, 100%);
+    --gut: clamp(20px, 5vw, 64px);
+  }
+  *, *::before, *::after { box-sizing: inherit; }
+  html { scroll-padding-top: calc(72px + env(safe-area-inset-top, 0px)); -webkit-text-size-adjust: 100%; }
+  body{
+    margin:0;
+    background: var(--ink);
+    color: var(--gauze);
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    font-size: clamp(16px, 1.05vw + 13px, 18px);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="light"]) body{ background: var(--ink); color: var(--gauze); }
+  }
+
+  h1,h2,h3,.display{
+    font-family: "Roboto Condensed", "Arial Narrow", Arial, sans-serif;
+    font-weight: 900;
+    text-transform: uppercase;
+    line-height: .92;
+    letter-spacing: -.01em;
+    margin: 0;
+  }
+
+  /* ---------- 3D layer ---------- */
+  #scene{ position: fixed; inset: 0; z-index: 0; display: block; touch-action: pan-y; }
+  #veil{
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background:
+      radial-gradient(120% 80% at 80% 10%, rgba(7,9,10,0) 0%, rgba(7,9,10,.5) 55%, rgba(7,9,10,.9) 100%),
+      linear-gradient(90deg, rgba(7,9,10,.94) 0%, rgba(7,9,10,.7) 42%, rgba(7,9,10,.06) 78%);
+  }
+  @media (max-width: 860px){
+    #veil{ background: radial-gradient(130% 70% at 50% 0%, rgba(7,9,10,.3), rgba(7,9,10,.86) 70%), linear-gradient(180deg, rgba(7,9,10,.5), rgba(7,9,10,.84)); }
+  }
+
+  /* kit inspector */
+  #kitlabel{
+    position: fixed; z-index: 4; pointer-events: none; opacity: 0;
+    transform: translate(-50%, -100%);
+    max-width: min(280px, 70vw);
+    padding: 12px 14px;
+    background: rgba(7,9,10,.92);
+    border: 1px solid rgba(140,224,27,.5);
+    border-radius: 2px;
+    transition: opacity .16s ease;
+  }
+  #kitlabel[data-on="1"]{ opacity: 1; }
+  #kitlabel b{ display:block; font-family:"Roboto Condensed",Arial,sans-serif; font-weight:700; font-size:1.05rem; text-transform:uppercase; letter-spacing:.02em; color: var(--acid); }
+  #kitlabel span{ display:block; font-size:.86rem; line-height:1.45; color:#c8c5bb; margin-top:4px; }
+  #kitlabel::after{
+    content:""; position:absolute; left:50%; bottom:-6px; width:10px; height:10px;
+    background: rgba(7,9,10,.92); border-right:1px solid rgba(140,224,27,.5); border-bottom:1px solid rgba(140,224,27,.5);
+    transform: translateX(-50%) rotate(45deg);
+  }
+  @media (prefers-reduced-motion: reduce){ #kitlabel{ transition: none; } }
+
+  /* ---------- chrome ---------- */
+  .bar{
+    position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+    padding: 14px var(--gut);
+    background: linear-gradient(180deg, rgba(7,9,10,.92), rgba(7,9,10,0));
+    backdrop-filter: blur(6px);
+  }
+  .mark{ display:flex; align-items:center; gap:10px; font-family:"Roboto Condensed",Arial,sans-serif; font-weight:900; font-size:15px; letter-spacing:.04em; }
+  .mark i{ width:10px; height:10px; background: var(--acid); display:block; transform: rotate(45deg); }
+  .bar a.call{
+    font-weight:600; font-size:14px; text-decoration:none; color: var(--ink);
+    background: var(--acid); padding:9px 16px; border-radius:2px; white-space:nowrap;
+  }
+  .bar a.call:hover{ background:#a2f52f; }
+
+  main{ position: relative; z-index: 2; pointer-events: none; }
+  main :is(a, button, summary, h1, h2, h3, p, li, dd, dt, article, time, .fact, .info > div){ pointer-events: auto; }
+  section{ padding: clamp(80px, 12vh, 140px) var(--gut); }
+  .wrap{ max-width: 1180px; margin: 0 auto; }
+  .col{ max-width: var(--col); }
+
+  /* ---------- hero ---------- */
+  #hero{ min-height: 92svh; display:flex; align-items:center; padding-top: clamp(40px,8vh,90px); }
+  .aegis{ display:flex; align-items:center; gap:10px; font-size:13px; color:var(--gauze-dim); margin-bottom:26px; }
+  .aegis b{ color: var(--gold); font-weight:600; letter-spacing:.02em; }
+  h1{ font-size: clamp(3.2rem, 11.5vw, 8.4rem); }
+  h1 .g{ color: var(--acid); display:block; }
+  h1 .y{ color: var(--gold); font-size: .34em; letter-spacing:.34em; display:block; margin-bottom:.5em; }
+  .byline{ font-size: clamp(1rem,2.4vw,1.35rem); margin:22px 0 0; color: var(--gauze); }
+  .byline span{ color: var(--acid); }
+  .lede{ margin: 26px 0 0; max-width: 34ch; color: #cfcbc0; }
+  .facts{ display:flex; flex-wrap:wrap; gap: 30px 44px; margin-top: 40px; }
+  .fact{ border-left: 2px solid var(--acid); padding-left: 14px; }
+  .fact dt{ font-size: 12.5px; color: var(--gauze-dim); margin-bottom:2px; }
+  .fact dd{ margin:0; font-family:"Roboto Condensed",Arial,sans-serif; font-weight:700; font-size: 1.28rem; letter-spacing:.01em; }
+  .scroll-note{ margin-top: 54px; font-size:13px; color: var(--gauze-dim); max-width: 40ch; }
+
+  /* ---------- sections ---------- */
+  h2{ font-size: clamp(2.1rem, 5.2vw, 3.6rem); margin-bottom: 30px; }
+  h2 em{ font-style: normal; color: var(--acid); }
+  .sub{ color:#c2bfb5; max-width: 52ch; }
+
+  ul.learn{ list-style:none; padding:0; margin: 8px 0 0; max-width: 760px; }
+  ul.learn li{
+    display:grid; grid-template-columns: 26px 1fr; gap: 14px;
+    padding: 20px 0; border-bottom: 1px solid var(--line);
+    font-size: 1.06rem;
+  }
+  ul.learn li:first-child{ border-top: 1px solid var(--line); }
+  ul.learn svg{ width:20px; height:20px; margin-top:4px; fill:none; stroke:var(--acid); stroke-width:2.4; }
+  ul.learn small{ display:block; color: var(--gauze-dim); font-size:.86rem; line-height:1.5; margin-top:3px; }
+
+  ol.run{ list-style:none; padding:0; margin:0; max-width: 720px; }
+  ol.run li{ display:grid; grid-template-columns: 84px 1fr; gap:18px; padding: 16px 0; border-bottom:1px solid var(--line); }
+  ol.run time{ font-family:"Roboto Condensed",Arial,sans-serif; font-weight:700; color: var(--gold); font-size:1.1rem; padding-top:2px; }
+  ol.run b{ font-weight:600; }
+  ol.run p{ margin:2px 0 0; color: var(--gauze-dim); font-size:.92rem; }
+
+  .who{ display:grid; gap:1px; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); background: var(--line); border:1px solid var(--line); max-width: 1000px; margin-top: 8px; }
+  .who div{ background: rgba(10,13,14,.86); padding: 22px; }
+  .who h3{ font-size:1.15rem; margin-bottom:8px; }
+  .who p{ margin:0; font-size:.92rem; color:#c2bfb5; }
+
+  .people{ display:grid; gap: 22px; grid-template-columns: repeat(auto-fit, minmax(280px,1fr)); max-width: 900px; }
+  .person{ background: rgba(14,17,19,.74); backdrop-filter: blur(8px); border:1px solid var(--line); padding: 26px; }
+  .person.lead{ border-color: rgba(140,224,27,.45); }
+  .person h3{ font-size: 1.6rem; }
+  .role{ color: var(--acid); font-size:.86rem; margin: 8px 0 14px; }
+  .person.guest .role{ color: var(--gold); }
+  .person p{ margin:0; color:#c2bfb5; font-size:.95rem; }
+  .person ul{ margin:12px 0 0; padding-left: 18px; color:#c2bfb5; font-size:.95rem; }
+
+  .info{ display:grid; gap: 1px; grid-template-columns: repeat(auto-fit, minmax(230px,1fr)); background: var(--line); border:1px solid var(--line); max-width: 1000px; }
+  .info > div{ background: rgba(10,13,14,.86); padding: 24px; }
+  .info dt{ font-size:12.5px; color: var(--gauze-dim); }
+  .info dd{ margin:6px 0 0; font-family:"Roboto Condensed",Arial,sans-serif; font-weight:700; font-size:1.22rem; }
+  .info dd small{ display:block; font-family:"Inter",sans-serif; font-weight:400; font-size:.84rem; color:var(--gauze-dim); letter-spacing:0; margin-top:4px; }
+  .tbc{ color: var(--gold); }
+
+  .faq{ max-width: 760px; margin-top: 10px; }
+  .faq details{ border-bottom:1px solid var(--line); }
+  .faq details:first-of-type{ border-top:1px solid var(--line); }
+  .faq summary{ cursor:pointer; padding:18px 0; font-weight:600; list-style:none; display:flex; justify-content:space-between; gap:16px; align-items:center; }
+  .faq summary::-webkit-details-marker{ display:none; }
+  .faq summary::after{ content:"+"; color:var(--acid); font-size:1.4rem; line-height:1; }
+  .faq details[open] summary::after{ content:"–"; }
+  .faq p{ margin:0 0 18px; color:#c2bfb5; font-size:.95rem; max-width: 62ch; }
+
+  #register{ background: linear-gradient(180deg, rgba(7,9,10,0), rgba(7,9,10,.96) 30%); }
+  .reg{ display:flex; flex-wrap:wrap; gap: 18px; margin-top: 30px; }
+  .btn{
+    display:inline-flex; align-items:center; gap:10px; text-decoration:none;
+    font-weight:600; padding: 16px 26px; border-radius:2px;
+    background: var(--acid); color: var(--ink);
+  }
+  .btn:hover{ background:#a2f52f; }
+  .btn.ghost{ background: transparent; color: var(--gauze); border:1px solid var(--line); }
+  .btn.ghost:hover{ border-color: var(--acid); color: var(--acid); }
+  a:focus-visible, button:focus-visible, summary:focus-visible{ outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  footer{ padding: 40px var(--gut) 60px; border-top:1px solid var(--line); color: var(--gauze-dim); font-size:.85rem; position:relative; z-index:2; background: var(--ink); }
+  footer p{ margin:0 0 8px; max-width: 70ch; }
+
+  .rise{ opacity:0; transform: translateY(14px); animation: rise .9s cubic-bezier(.22,.7,.3,1) forwards; }
+  .rise:nth-child(2){ animation-delay:.08s } .rise:nth-child(3){ animation-delay:.16s }
+  @keyframes rise{ to{ opacity:1; transform:none } }
+  @media (prefers-reduced-motion: reduce){
+    .rise{ animation:none; opacity:1; transform:none; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+<div id="veil" aria-hidden="true"></div>
+<div id="kitlabel" aria-hidden="true"><b></b><span></span></div>
+
+<header class="bar">
+  <div class="mark"><i></i> WCA · SIOULIS CUTMAN SEMINAR</div>
+  <a class="call" href="tel:+306937522770">Δήλωσε συμμετοχή</a>
+</header>
+
+<main>
+  <section id="hero">
+    <div class="wrap col">
+      <p class="aegis rise">Υπό την αιγίδα της <b>World Cutman Association</b></p>
+      <h1 class="rise"><span class="y">Σεμινάριο</span>Cutman<span class="g">&amp; Hand<br>Wrapping</span></h1>
+      <p class="byline rise">με τον <span>Μιχάλη Σιούλη</span> — guest: Σίλβιο Κουλλόλλι</p>
+      <p class="lede">Εξήντα δευτερόλεπτα ανάμεσα στους γύρους. Ό,τι γίνει, γίνεται με τα χέρια σου.</p>
+      <dl class="facts">
+        <div class="fact"><dt>Ημερομηνία</dt><dd>Κυριακή 29 Νοεμβρίου</dd></div>
+        <div class="fact"><dt>Ώρες</dt><dd>09:00 – 17:00</dd></div>
+        <div class="fact"><dt>Χώρος</dt><dd>Dynamo Academy, Μεταμόρφωση</dd></div>
+      </dl>
+      <p class="scroll-note">Το κιτ της γωνίας αιωρείται γύρω σου. Πέρνα το ποντίκι πάνω από ένα αντικείμενο —ή άγγιξέ το— για να δεις τι κάνει.</p>
+    </div>
+  </section>
+
+  <section id="learn">
+    <div class="wrap">
+      <h2>Τι θα <em>μάθεις</em></h2>
+      <ul class="learn">
+        <li>
+          <svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6"/></svg>
+          <div>Αντιμετώπιση κοψιμάτων &amp; τραυματισμών
+            <small>Πίεση, κρύο, enswell, αιμοστατικά. Τι κάνεις πρώτο μέσα στο λεπτό που έχεις.</small></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6"/></svg>
+          <div>Τεχνικές hand wrapping
+            <small>Boxing, MMA και gauze &amp; tape — δέσιμο που κρατάει όλο τον αγώνα.</small></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6"/></svg>
+          <div>Προστασία χεριών &amp; σωστή επίδεση
+            <small>Καρπός, μετακάρπια, αντίχειρας: πού πάει η στήριξη και πού το μαξιλάρι.</small></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6"/></svg>
+          <div>Υλικά, απολύμανση &amp; επαγγελματική προετοιμασία
+            <small>Τι μπαίνει στο κιτ, πώς στήνεται η γωνία, τι επιτρέπεται από τους κανονισμούς.</small></div>
+        </li>
+        <li>
+          <svg viewBox="0 0 24 24"><path d="M4 13l5 5L20 6"/></svg>
+          <div>Πρακτική εφαρμογή σε πραγματικές συνθήκες αγώνα
+            <small>Δουλεύεις με χρόνο, με φασαρία και με αθλητή μπροστά σου.</small></div>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <section id="program">
+    <div class="wrap">
+      <h2>Η ροή της <em>ημέρας</em></h2>
+      <p class="sub" style="margin-bottom:30px">Ενδεικτικό πρόγραμμα· οι πρακτικές ενότητες τρέχουν σε ζευγάρια.</p>
+      <ol class="run">
+        <li><time>09:00</time><div><b>Προσέλευση &amp; εγγραφές</b><p>Παραλαβή υλικών.</p></div></li>
+        <li><time>09:30</time><div><b>Ο ρόλος του cutman</b><p>Ανατομία προσώπου, πώς αιμορραγεί ένα κόψιμο, τι βλέπεις στα 60 δευτερόλεπτα.</p></div></li>
+        <li><time>11:00</time><div><b>Hand wrapping — θεωρία και χέρια</b><p>Τεχνικές ανά άθλημα, έλεγχος από τον διαιτητή.</p></div></li>
+        <li><time>13:00</time><div><b>Διάλειμμα</b></div></li>
+        <li><time>14:00</time><div><b>Guest module: Σίλβιο Κουλλόλλι</b><p>Διαχείριση καταστροφικής αιμορραγίας, χρήση turniquet, wound packing.</p></div></li>
+        <li><time>15:30</time><div><b>Προσομοίωση γωνίας</b><p>Ολόκληρος γύρος με χρόνο, υπό πίεση.</p></div></li>
+        <li><time>17:00</time><div><b>Απονομή πιστοποιητικών</b></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="audience">
+    <div class="wrap">
+      <h2>Για ποιους <em>είναι</em></h2>
+      <p class="sub">Δεν χρειάζεται προηγούμενη εμπειρία σε γωνία· χρειάζεται να αντέχεις να δουλεύεις με χρόνο και με αίμα.</p>
+      <div class="who">
+        <div><h3>Cornermen &amp; προπονητές</h3><p>Boxing, kickboxing, MMA — όποιος ανεβαίνει στα σκαλιά ανάμεσα στους γύρους.</p></div>
+        <div><h3>Αθλητές</h3><p>Για να ξέρεις τι γίνεται στο πρόσωπό σου και ποιος έδεσε σωστά τα χέρια σου.</p></div>
+        <div><h3>Φυσικοθεραπευτές &amp; διασώστες</h3><p>Το guest module καλύπτει καταστροφική αιμορραγία, turniquet και wound packing.</p></div>
+        <div><h3>Αρχάριοι</h3><p>Ξεκινάς από το κιτ και το βασικό δέσιμο. Όλο το υλικό της πρακτικής δίνεται στον χώρο.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="people">
+    <div class="wrap">
+      <h2>Ποιοι <em>διδάσκουν</em></h2>
+      <div class="people">
+        <article class="person lead">
+          <h3>Μιχάλης Σιούλης</h3>
+          <p class="role">Cutman — World Cutman Association</p>
+          <p>Δουλειά σε γωνία αγώνων boxing και MMA. Διδάσκει το κομμάτι του cutman και το hand wrapping, από το κιτ μέχρι την πρακτική στον ρινγκ.</p>
+        </article>
+        <article class="person guest">
+          <h3>Σίλβιο Κουλλόλλι</h3>
+          <p class="role">Προσκεκλημένος εισηγητής</p>
+          <ul>
+            <li>Διαχείριση καταστροφικής αιμορραγίας</li>
+            <li>Χρήση turniquet</li>
+            <li>Wound packing</li>
+          </ul>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="info">
+    <div class="wrap">
+      <h2>Πληροφορίες</h2>
+      <dl class="info">
+        <div><dt>Ημερομηνία</dt><dd>Κυρ. 29 Νοεμβρίου<small>09:00 – 17:00</small></dd></div>
+        <div><dt>Χώρος</dt><dd>Dynamo Academy<small>Γ. Παπανδρέου 175, Μεταμόρφωση</small></dd></div>
+        <div><dt>Κόστος συμμετοχής</dt><dd class="tbc">Προς ανακοίνωση<small>Συμπληρώνεται πριν τη δημοσίευση</small></dd></div>
+        <div><dt>Προκαταβολή</dt><dd class="tbc">Προς ανακοίνωση<small>Η θέση κρατείται με την προκαταβολή</small></dd></div>
+        <div><dt>Πιστοποίηση</dt><dd>Διπλό πιστοποιητικό<small>Παρακολούθησης, με την ολοκλήρωση της ημέρας</small></dd></div>
+        <div><dt>Αιγίδα</dt><dd>World Cutman Association<small>WCA</small></dd></div>
+        <div><dt>Τι φέρνεις</dt><dd>Αθλητικά ρούχα<small>Τα αναλώσιμα της πρακτικής δίνονται στον χώρο</small></dd></div>
+        <div><dt>Θέσεις</dt><dd>Περιορισμένες<small>Με σειρά δήλωσης συμμετοχής</small></dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <h2>Συχνές <em>ερωτήσεις</em></h2>
+      <div class="faq">
+        <details>
+          <summary>Χρειάζομαι εμπειρία σε αγώνες;</summary>
+          <p>Όχι. Η ημέρα ξεκινά από τα βασικά: τι έχει το κιτ, πώς στήνεται η γωνία, πώς δένεται ένα χέρι. Όσοι έχουν ήδη εμπειρία δουλεύουν πιο βαθιά στην πρακτική του απογεύματος.</p>
+        </details>
+        <details>
+          <summary>Τι πρέπει να φέρω μαζί μου;</summary>
+          <p>Αθλητικά ρούχα και νερό. Γάζες, ταινίες και τα αναλώσιμα της πρακτικής δίνονται στον χώρο. Αν έχεις δικό σου κιτ, φέρ' το — θα το δούμε μαζί.</p>
+        </details>
+        <details>
+          <summary>Τι πιστοποιητικό παίρνω;</summary>
+          <p>Διπλό πιστοποιητικό παρακολούθησης: ένα για το σκέλος cutman &amp; hand wrapping και ένα για το module διαχείρισης αιμορραγίας. Δίνονται στο τέλος της ημέρας.</p>
+        </details>
+        <details>
+          <summary>Πώς έρχομαι στο Dynamo Academy;</summary>
+          <p>Γ. Παπανδρέου 175, Μεταμόρφωση. Υπάρχει στάθμευση στον δρόμο· με ΜΜΜ βολεύει ο ΗΣΑΠ Ηράκλειο και λεωφορείο προς Μεταμόρφωση. Λεπτομέρειες πρόσβασης στέλνονται με την επιβεβαίωση.</p>
+        </details>
+        <details>
+          <summary>Μπορώ να ακυρώσω;</summary>
+          <p>Ναι, με ενημέρωση πριν την ημερομηνία του σεμιναρίου· η θέση δίνεται στον επόμενο της λίστας. Οι όροι επιστροφής προκαταβολής ανακοινώνονται μαζί με το κόστος.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section id="register">
+    <div class="wrap col">
+      <h2>Κράτα <em>θέση</em></h2>
+      <p class="sub">Δήλωσε συμμετοχή στο τηλέφωνο ή με email. Θα λάβεις επιβεβαίωση και τις λεπτομέρειες πληρωμής.</p>
+      <div class="reg">
+        <a class="btn" href="tel:+306937522770">693 7522770</a>
+        <a class="btn ghost" href="mailto:msioulis@yahoo.gr">msioulis@yahoo.gr</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>Σεμινάριο Cutman &amp; Hand Wrapping — Dynamo Academy, Γ. Παπανδρέου 175, Μεταμόρφωση. Υπό την αιγίδα της World Cutman Association.</p>
+  <p>Demo σελίδα: το 3D σκηνικό δείχνει το κιτ της γωνίας σε μηδενική βαρύτητα. Το πρόγραμμα ημέρας, το κόστος και οι όροι ακύρωσης είναι ενδεικτικά και χρειάζονται επιβεβαίωση.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function () {
+  if (!window.THREE) return;
+  var canvas = document.getElementById('scene');
+  var labelEl = document.getElementById('kitlabel');
+  var labelName = labelEl.querySelector('b');
+  var labelNote = labelEl.querySelector('span');
+
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var small = window.matchMedia('(max-width: 860px)').matches;
+  var coarse = window.matchMedia('(pointer: coarse)').matches;
+
+  var renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, small ? 1.6 : 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.05;
+
+  var scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x07090a);
+  scene.fog = new THREE.Fog(0x07090a, 9, 30);
+
+  var camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 9);
+
+  // ---------------------------------------------------------------- textures
+  function canvas2d(size) {
+    var c = document.createElement('canvas');
+    c.width = c.height = size;
+    return c;
+  }
+  function texFrom(c, rx, ry) {
+    var t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(rx || 1, ry || 1);
+    t.anisotropy = 4;
+    return t;
+  }
+  // build a normal map out of a grayscale height drawing
+  function normalFromHeight(size, draw, strength) {
+    var c = canvas2d(size), x = c.getContext('2d');
+    x.fillStyle = '#808080'; x.fillRect(0, 0, size, size);
+    draw(x, size);
+    var src = x.getImageData(0, 0, size, size).data;
+    var out = x.createImageData(size, size);
+    function h(i, j) { i = (i + size) % size; j = (j + size) % size; return src[(j * size + i) * 4] / 255; }
+    for (var j = 0; j < size; j++) {
+      for (var i = 0; i < size; i++) {
+        var dx = (h(i + 1, j) - h(i - 1, j)) * strength;
+        var dy = (h(i, j + 1) - h(i, j - 1)) * strength;
+        var nx = -dx, ny = -dy, l = Math.sqrt(nx * nx + ny * ny + 1);
+        var o = (j * size + i) * 4;
+        out.data[o] = (nx / l * .5 + .5) * 255;
+        out.data[o + 1] = (ny / l * .5 + .5) * 255;
+        out.data[o + 2] = (1 / l * .5 + .5) * 255;
+        out.data[o + 3] = 255;
+      }
+    }
+    x.putImageData(out, 0, 0);
+    return texFrom(c);
+  }
+
+  // gauze: woven threads, slightly irregular
+  var gauzeColor = (function () {
+    var c = canvas2d(128), x = c.getContext('2d');
+    x.fillStyle = '#f4f1e8'; x.fillRect(0, 0, 128, 128);
+    x.strokeStyle = 'rgba(150,146,134,.30)'; x.lineWidth = 1.2;
+    for (var i = 0; i <= 128; i += 8) {
+      x.globalAlpha = .6 + Math.random() * .4;
+      x.beginPath(); x.moveTo(i + .5, 0); x.lineTo(i + .5, 128); x.stroke();
+      x.beginPath(); x.moveTo(0, i + .5); x.lineTo(128, i + .5); x.stroke();
+    }
+    x.globalAlpha = 1;
+    for (var k = 0; k < 500; k++) {
+      x.fillStyle = 'rgba(210,205,192,' + (Math.random() * .5) + ')';
+      x.fillRect(Math.random() * 128, Math.random() * 128, 2, 1);
+    }
+    return texFrom(c);
+  })();
+  var gauzeNormal = normalFromHeight(128, function (x, s) {
+    for (var i = 0; i < s; i += 8) {
+      x.fillStyle = '#d8d8d8'; x.fillRect(i, 0, 4, s);
+      x.fillStyle = '#585858'; x.fillRect(i + 4, 0, 4, s);
+    }
+    x.globalAlpha = .5;
+    for (var j = 0; j < s; j += 8) {
+      x.fillStyle = '#e2e2e2'; x.fillRect(0, j, s, 4);
+      x.fillStyle = '#4e4e4e'; x.fillRect(0, j + 4, s, 4);
+    }
+    x.globalAlpha = 1;
+  }, 2.6);
+
+  // brushed steel: fine horizontal streaks in roughness + normal
+  var steelRough = (function () {
+    var c = canvas2d(128), x = c.getContext('2d');
+    x.fillStyle = '#3a3a3a'; x.fillRect(0, 0, 128, 128);
+    for (var k = 0; k < 900; k++) {
+      var g = 30 + Math.random() * 90;
+      x.strokeStyle = 'rgba(' + g + ',' + g + ',' + g + ',.5)';
+      x.lineWidth = Math.random() * 1.4;
+      var y = Math.random() * 128;
+      x.beginPath(); x.moveTo(0, y); x.lineTo(128, y); x.stroke();
+    }
+    return texFrom(c);
+  })();
+  var steelNormal = normalFromHeight(128, function (x, s) {
+    for (var k = 0; k < 700; k++) {
+      var g = 90 + Math.random() * 90;
+      x.strokeStyle = 'rgb(' + g + ',' + g + ',' + g + ')';
+      x.lineWidth = Math.random() * 1.2;
+      var y = Math.random() * s;
+      x.beginPath(); x.moveTo(0, y); x.lineTo(s, y); x.stroke();
+    }
+  }, .6);
+
+  // rubber grip: dimpled noise
+  var gripNormal = normalFromHeight(128, function (x, s) {
+    for (var j = 4; j < s; j += 9) {
+      for (var i = 4; i < s; i += 9) {
+        x.beginPath();
+        x.fillStyle = '#d0d0d0';
+        x.arc(i + (j % 18 ? 4 : 0), j, 3.2, 0, 6.283);
+        x.fill();
+      }
+    }
+  }, 1.8);
+
+  // ------------------------------------------------------------ environment
+  (function buildEnv() {
+    var c = document.createElement('canvas');
+    c.width = 512; c.height = 256;
+    var x = c.getContext('2d');
+    var g = x.createLinearGradient(0, 0, 0, 256);
+    g.addColorStop(0, '#2a3238');   // gym ceiling haze
+    g.addColorStop(.42, '#10161a');
+    g.addColorStop(.58, '#0a0d0f');
+    g.addColorStop(1, '#05070880');
+    x.fillStyle = g; x.fillRect(0, 0, 512, 256);
+    // overhead ring lights
+    for (var i = 0; i < 4; i++) {
+      var lx = 60 + i * 130, ly = 42;
+      var rg = x.createRadialGradient(lx, ly, 2, lx, ly, 52);
+      rg.addColorStop(0, 'rgba(255,255,255,.95)');
+      rg.addColorStop(1, 'rgba(255,255,255,0)');
+      x.fillStyle = rg; x.fillRect(lx - 60, ly - 60, 120, 120);
+    }
+    // acid bounce from the canvas below, gold from the corner
+    var a = x.createRadialGradient(120, 230, 4, 120, 230, 150);
+    a.addColorStop(0, 'rgba(140,224,27,.30)'); a.addColorStop(1, 'rgba(140,224,27,0)');
+    x.fillStyle = a; x.fillRect(0, 100, 300, 156);
+    var b = x.createRadialGradient(400, 200, 4, 400, 200, 130);
+    b.addColorStop(0, 'rgba(242,183,5,.22)'); b.addColorStop(1, 'rgba(242,183,5,0)');
+    x.fillStyle = b; x.fillRect(260, 80, 260, 176);
+
+    var tex = new THREE.CanvasTexture(c);
+    tex.mapping = THREE.EquirectangularReflectionMapping;
+    tex.encoding = THREE.sRGBEncoding;
+    var rt = new THREE.WebGLCubeRenderTarget(128);
+    rt.fromEquirectangularTexture(renderer, tex);
+    scene.environment = rt.texture;
+  })();
+
+  // ----------------------------------------------------------------- lights
+  scene.add(new THREE.HemisphereLight(0x3a4a52, 0x06080a, 0.4));
+  var key = new THREE.DirectionalLight(0xffffff, 1.0); key.position.set(4, 7, 6); scene.add(key);
+  var rim = new THREE.PointLight(0x8ce01b, 22, 26, 2); rim.position.set(-6, -2, -4); scene.add(rim);
+  var fill = new THREE.PointLight(0xf2b705, 12, 22, 2); fill.position.set(6, -3, 2); scene.add(fill);
+
+  // -------------------------------------------------------------- materials
+  var M = {
+    gauze: new THREE.MeshStandardMaterial({ map: gauzeColor, normalMap: gauzeNormal, normalScale: new THREE.Vector2(.8, .8), color: 0xffffff, roughness: .97, metalness: 0, envMapIntensity: .45, side: THREE.DoubleSide }),
+    core:  new THREE.MeshStandardMaterial({ color: 0xb08c5a, roughness: .92, envMapIntensity: .3 }),
+    steel: new THREE.MeshStandardMaterial({ color: 0xcfd5d9, roughnessMap: steelRough, normalMap: steelNormal, normalScale: new THREE.Vector2(.35, .35), roughness: .55, metalness: 1, envMapIntensity: 1.25 }),
+    dark:  new THREE.MeshStandardMaterial({ color: 0x15181a, normalMap: gripNormal, normalScale: new THREE.Vector2(.5, .5), roughness: .78, metalness: .15, envMapIntensity: .6 }),
+    tape:  new THREE.MeshStandardMaterial({ color: 0xe8e4d8, roughness: .48, metalness: .04, envMapIntensity: .8 }),
+    amber: new THREE.MeshStandardMaterial({ color: 0xf2b705, roughness: .22, metalness: .05, transparent: true, opacity: .8, envMapIntensity: 1.4 }),
+    blood: new THREE.MeshStandardMaterial({ color: 0xc3190f, roughness: .16, metalness: .05, emissive: 0x2c0402, envMapIntensity: 1.2 }),
+    acid:  new THREE.MeshStandardMaterial({ color: 0x8ce01b, roughness: .35, emissive: 0x1a3105, envMapIntensity: 1 }),
+    glass: new THREE.MeshStandardMaterial({ color: 0xa8dced, roughness: .06, metalness: .02, transparent: true, opacity: .4, envMapIntensity: 1.6 })
+  };
+
+  // ------------------------------------------------------------- geo helpers
+  function roundedSlab(w, h, d, r, mat) {
+    var s = new THREE.Shape();
+    var x0 = -w / 2, y0 = -h / 2;
+    s.moveTo(x0 + r, y0);
+    s.lineTo(x0 + w - r, y0); s.quadraticCurveTo(x0 + w, y0, x0 + w, y0 + r);
+    s.lineTo(x0 + w, y0 + h - r); s.quadraticCurveTo(x0 + w, y0 + h, x0 + w - r, y0 + h);
+    s.lineTo(x0 + r, y0 + h); s.quadraticCurveTo(x0, y0 + h, x0, y0 + h - r);
+    s.lineTo(x0, y0 + r); s.quadraticCurveTo(x0, y0, x0 + r, y0);
+    var g = new THREE.ExtrudeGeometry(s, {
+      depth: d, bevelEnabled: true, bevelThickness: Math.min(.03, d / 3),
+      bevelSize: Math.min(.03, r / 2), bevelSegments: 3, curveSegments: 10
+    });
+    g.center();
+    return new THREE.Mesh(g, mat);
+  }
+  // flat woven band swept along a curve (used for the wrap and for loose ends)
+  function ribbonFromCurve(curve, width, segs, repeatU, mat) {
+    var frames = curve.computeFrenetFrames(segs, false);
+    var pos = [], uv = [], idx = [], v = new THREE.Vector3();
+    for (var j = 0; j <= segs; j++) {
+      var u = j / segs;
+      curve.getPointAt(u, v);
+      var bn = frames.binormals[j];
+      pos.push(v.x + bn.x * width, v.y + bn.y * width, v.z + bn.z * width);
+      pos.push(v.x - bn.x * width, v.y - bn.y * width, v.z - bn.z * width);
+      uv.push(u * repeatU, 1, u * repeatU, 0);
+      if (j < segs) { var k = j * 2; idx.push(k, k + 1, k + 2, k + 1, k + 3, k + 2); }
+    }
+    var geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+    return new THREE.Mesh(geo, mat || M.gauze);
+  }
+  function glow(color, size) {
+    var c = canvas2d(64), x = c.getContext('2d');
+    var g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, color); g.addColorStop(1, 'rgba(0,0,0,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    var s = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false }));
+    s.scale.set(size, size, 1);
+    return s;
+  }
+
+  // ------------------------------------------------------------- the kit
+  function gauzeRoll() {
+    var g = new THREE.Group();
+    var body = new THREE.Mesh(new THREE.CylinderGeometry(.5, .5, .62, 44, 1, true), M.gauze);
+    var lip1 = new THREE.Mesh(new THREE.RingGeometry(.19, .5, 44), M.gauze);
+    lip1.rotation.x = -Math.PI / 2; lip1.position.y = .31;
+    var lip2 = lip1.clone(); lip2.position.y = -.31; lip2.rotation.x = Math.PI / 2;
+    var core = new THREE.Mesh(new THREE.CylinderGeometry(.19, .19, .6, 24, 1, true), M.core);
+    // loose end peeling off the roll
+    var tail = ribbonFromCurve(new THREE.CatmullRomCurve3([
+      new THREE.Vector3(.5, .05, 0), new THREE.Vector3(.86, -.1, .22),
+      new THREE.Vector3(1.05, .12, .55), new THREE.Vector3(1.0, .3, .95)
+    ]), .28, 40, 4, M.gauze);
+    g.add(body, lip1, lip2, core, tail);
+    return g;
+  }
+  function tapeRoll() {
+    var g = new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.TorusGeometry(.42, .15, 18, 52), M.tape));
+    var core = new THREE.Mesh(new THREE.CylinderGeometry(.28, .28, .3, 30, 1, true), M.dark);
+    core.rotation.x = Math.PI / 2; g.add(core);
+    return g;
+  }
+  function enswell() {
+    var g = new THREE.Group();
+    var head = roundedSlab(.78, .52, .14, .12, M.steel);
+    head.rotation.x = Math.PI / 2;
+    var neck = new THREE.Mesh(new THREE.CylinderGeometry(.05, .045, .52, 14), M.steel);
+    neck.rotation.z = Math.PI / 2; neck.position.x = -.62;
+    var grip = new THREE.Mesh(new THREE.CylinderGeometry(.085, .075, .36, 18), M.dark);
+    grip.rotation.z = Math.PI / 2; grip.position.x = -1.0;
+    var cap = new THREE.Mesh(new THREE.SphereGeometry(.076, 14, 12), M.dark); cap.position.x = -1.18;
+    g.add(head, neck, grip, cap);
+    return g;
+  }
+  function swab() {
+    var g = new THREE.Group();
+    var stick = new THREE.Mesh(new THREE.CylinderGeometry(.018, .018, .74, 8), M.core);
+    var a = new THREE.Mesh(new THREE.SphereGeometry(.058, 14, 12), M.gauze); a.position.y = .37; a.scale.y = 1.2;
+    var b = a.clone(); b.position.y = -.37;
+    g.add(stick, a, b);
+    return g;
+  }
+  function bottle() {
+    var g = new THREE.Group();
+    var pts = [];
+    pts.push(new THREE.Vector2(0, -.24), new THREE.Vector2(.16, -.24), new THREE.Vector2(.175, -.18),
+             new THREE.Vector2(.175, .12), new THREE.Vector2(.1, .2), new THREE.Vector2(.072, .24),
+             new THREE.Vector2(.072, .33), new THREE.Vector2(0, .33));
+    g.add(new THREE.Mesh(new THREE.LatheGeometry(pts, 26), M.glass));
+    var cap = new THREE.Mesh(new THREE.CylinderGeometry(.088, .088, .12, 18), M.blood); cap.position.y = .37;
+    var liquid = new THREE.Mesh(new THREE.CylinderGeometry(.14, .14, .26, 20), M.blood);
+    liquid.position.y = -.08; liquid.material = M.blood;
+    g.add(cap, liquid);
+    return g;
+  }
+  function jar() {
+    var g = new THREE.Group();
+    var pts = [new THREE.Vector2(0, -.11), new THREE.Vector2(.26, -.11), new THREE.Vector2(.275, -.05),
+               new THREE.Vector2(.275, .08), new THREE.Vector2(.25, .11), new THREE.Vector2(0, .11)];
+    g.add(new THREE.Mesh(new THREE.LatheGeometry(pts, 28), M.amber));
+    var lid = new THREE.Mesh(new THREE.CylinderGeometry(.29, .285, .09, 28), M.dark); lid.position.y = .15;
+    g.add(lid);
+    g.add(glow('rgba(242,183,5,.5)', 1.5));
+    return g;
+  }
+  function shears() {
+    var g = new THREE.Group();
+    for (var s = -1; s <= 1; s += 2) {
+      var blade = roundedSlab(.075, .72, .02, .03, M.steel);
+      blade.position.set(s * .04, .32, 0); blade.rotation.z = s * .07;
+      var ring = new THREE.Mesh(new THREE.TorusGeometry(.125, .03, 10, 24), M.dark);
+      ring.position.set(s * .15, -.3, 0);
+      var arm = new THREE.Mesh(new THREE.CylinderGeometry(.026, .026, .34, 10), M.steel);
+      arm.position.set(s * .08, -.14, 0); arm.rotation.z = s * .28;
+      g.add(blade, ring, arm);
+    }
+    var pivot = new THREE.Mesh(new THREE.CylinderGeometry(.038, .038, .09, 12), M.steel);
+    pivot.rotation.x = Math.PI / 2; g.add(pivot);
+    return g;
+  }
+  function icePack() {
+    var g = new THREE.Group();
+    var bag = new THREE.Mesh(new THREE.SphereGeometry(.44, 26, 18), M.glass);
+    bag.scale.set(1, .58, 1);
+    g.add(bag);
+    for (var i = 0; i < 7; i++) {
+      var cube = new THREE.Mesh(new THREE.BoxGeometry(.13, .13, .13), M.glass);
+      cube.position.set((Math.random() - .5) * .5, (Math.random() - .5) * .2, (Math.random() - .5) * .5);
+      cube.rotation.set(Math.random() * 3, Math.random() * 3, Math.random() * 3);
+      g.add(cube);
+    }
+    return g;
+  }
+  function chip() {
+    var g = new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.TetrahedronGeometry(.13), M.acid));
+    g.add(glow('rgba(140,224,27,.45)', 1.1));
+    return g;
+  }
+  function drop() {
+    var g = new THREE.Group();
+    var m = new THREE.Mesh(new THREE.SphereGeometry(.075, 16, 14), M.blood);
+    m.scale.y = 1.3; g.add(m);
+    var sat = new THREE.Mesh(new THREE.SphereGeometry(.03, 10, 8), M.blood);
+    sat.position.set(.14, -.16, .05); g.add(sat);
+    return g;
+  }
+
+  var KIT = [
+    { make: gauzeRoll, name: 'Γάζα',        note: 'Η βάση του δεσίματος και του καθαρίσματος. Τυλίγεται στο χέρι πριν την ταινία.' },
+    { make: tapeRoll,  name: 'Ταινία',      note: 'Κλειδώνει τη γάζα και στηρίζει τον καρπό. Ο διαιτητής ελέγχει πόση και πού.' },
+    { make: enswell,   name: 'Enswell',     note: 'Κρύο μέταλλο με πίεση πάνω στο πρήξιμο. Πιέζεις — δεν σκουπίζεις.' },
+    { make: swab,      name: 'Στυλεός',     note: 'Μεταφέρει αιμοστατικό ακριβώς μέσα στο κόψιμο, χωρίς να το ανοίξει άλλο.' },
+    { make: bottle,    name: 'Αιμοστατικό', note: 'Σταματά την αιμορραγία στο διάλειμμα. Μόνο εγκεκριμένα σκευάσματα.' },
+    { make: jar,       name: 'Βαζελίνη',    note: 'Λεπτή στρώση στα ζυγωματικά και στα φρύδια: το χτύπημα γλιστράει αντί να σκίζει.' },
+    { make: shears,    name: 'Ψαλίδι',      note: 'Κόβει ταινία και γάζα με μία κίνηση. Στρογγυλή μύτη, πάντα καθαρό.' },
+    { make: icePack,   name: 'Παγοκύστη',   note: 'Κρατά το enswell κρύο και κατεβάζει το οίδημα ανάμεσα στους γύρους.' },
+    { make: chip,      name: 'Δείκτης',     note: 'Σημάδι στο κιτ: κάθε πράγμα στη θέση του, γιατί δεν θα προλάβεις να ψάξεις.' },
+    { make: drop,      name: 'Αίμα',        note: 'Ο λόγος που είσαι εκεί. Καθαρό πεδίο, γάντια, τίποτα στο έδαφος της γωνίας.' }
+  ];
+
+  // ------------------------------------------------------- hero: the wrap
+  function heroWrap() {
+    var pts = [], turns = 3.4, N = 110;
+    for (var i = 0; i <= N; i++) {
+      var t = i / N, a = t * Math.PI * 2 * turns, r = 1.5 - t * .55;
+      pts.push(new THREE.Vector3(Math.cos(a) * r, (t - .5) * 3.6 + Math.sin(a * .5) * .25, Math.sin(a) * r));
+    }
+    var mesh = ribbonFromCurve(new THREE.CatmullRomCurve3(pts), .19, 440, 30, M.gauze);
+    mesh.userData.kit = { name: 'Hand wrap', note: 'Τέσσερα μέτρα γάζας γύρω από έναν καρπό. Αν είναι λάθος, το χέρι σπάει στον τρίτο γύρο.' };
+    return mesh;
+  }
+
+  var world = new THREE.Group();
+  scene.add(world);
+
+  var ribbon = heroWrap();
+  ribbon.position.set(1.1, 0, -1.5);
+  world.add(ribbon);
+
+  var floaters = [];
+  var count = small ? 16 : 26;
+  for (var i = 0; i < count; i++) {
+    var def = KIT[i % KIT.length];
+    var o = def.make();
+    o.userData.kit = { name: def.name, note: def.note };
+    var ring = 2.4 + Math.random() * 3.4;
+    var a = Math.random() * Math.PI * 2;
+    o.position.set(
+      Math.cos(a) * ring * (small ? .85 : 1) + (small ? 0 : 1.5),
+      (Math.random() - .5) * 7,
+      2.5 - (i / count) * 17 + (Math.random() - .5) * 2
+    );
+    o.rotation.set(Math.random() * 6.28, Math.random() * 6.28, Math.random() * 6.28);
+    world.add(o);
+    floaters.push({
+      o: o,
+      sx: (Math.random() - .5) * .0022, sy: (Math.random() - .5) * .0026, sz: (Math.random() - .5) * .0019,
+      bob: Math.random() * 6.28, amp: .1 + Math.random() * .22, y0: o.position.y,
+      ease: 0
+    });
+  }
+
+  // -------------------------------------------------------- inspect the kit
+  var ray = new THREE.Raycaster();
+  var ndc = new THREE.Vector2(-2, -2);
+  var picked = null, pickedSticky = false;
+  var tmp = new THREE.Vector3();
+
+  function ownerOf(obj) {
+    while (obj) {
+      if (obj.userData && obj.userData.kit) return obj;
+      obj = obj.parent;
+    }
+    return null;
+  }
+  function setPicked(next) {
+    if (picked === next) return;
+    picked = next;
+    if (picked) {
+      labelName.textContent = picked.userData.kit.name;
+      labelNote.textContent = picked.userData.kit.note;
+      labelEl.setAttribute('data-on', '1');
+      canvas.style.cursor = 'crosshair';
+    } else {
+      labelEl.setAttribute('data-on', '0');
+      canvas.style.cursor = '';
+    }
+  }
+  function pickAt(clientX, clientY) {
+    ndc.x = (clientX / window.innerWidth) * 2 - 1;
+    ndc.y = -(clientY / window.innerHeight) * 2 + 1;
+    ray.setFromCamera(ndc, camera);
+    var hits = ray.intersectObjects(world.children, true);
+    for (var i = 0; i < hits.length; i++) {
+      var own = ownerOf(hits[i].object);
+      if (own) return own;
+    }
+    return null;
+  }
+
+  if (!coarse) {
+    window.addEventListener('pointermove', function (e) {
+      if (pickedSticky) return;
+      setPicked(pickAt(e.clientX, e.clientY));
+    }, { passive: true });
+  }
+  canvas.addEventListener('click', function (e) {
+    var hit = pickAt(e.clientX, e.clientY);
+    if (hit && hit === picked && pickedSticky) { pickedSticky = false; setPicked(null); return; }
+    setPicked(hit);
+    pickedSticky = !!hit && coarse;
+  });
+
+  // ----------------------------------------------------------- scroll/pointer
+  var p = 0, pTarget = 0, px = 0, py = 0, pxT = 0, pyT = 0;
+  function onScroll() {
+    var max = document.documentElement.scrollHeight - window.innerHeight;
+    pTarget = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+
+  if (!coarse) {
+    window.addEventListener('pointermove', function (e) {
+      pxT = (e.clientX / window.innerWidth - .5);
+      pyT = (e.clientY / window.innerHeight - .5);
+    }, { passive: true });
+  }
+
+  window.addEventListener('resize', function () {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    onScroll();
+  });
+
+  var t0 = performance.now();
+  function frame(now) {
+    var t = (now - t0) / 1000;
+    p += (pTarget - p) * .07;
+    px += (pxT - px) * .05;
+    py += (pyT - py) * .05;
+
+    world.position.z = p * 16;
+    world.rotation.y = p * 0.9;
+    camera.position.x = px * 1.3;
+    camera.position.y = -py * .9 + Math.sin(t * .25) * .08;
+    camera.lookAt(0, p * -0.6, -2);
+
+    if (!reduced) {
+      ribbon.rotation.y = t * .12;
+      ribbon.rotation.z = Math.sin(t * .2) * .12;
+    }
+    ribbon.position.y = Math.sin(t * .35) * .3 - p * 1.2;
+
+    for (var i = 0; i < floaters.length; i++) {
+      var f = floaters[i], held = (f.o === picked);
+      f.ease += ((held ? 1 : 0) - f.ease) * .12;
+      if (!reduced) {
+        var slow = 1 - f.ease * .92;
+        f.o.rotation.x += f.sx * slow;
+        f.o.rotation.y += f.sy * slow;
+        f.o.rotation.z += f.sz * slow;
+        f.o.position.y = f.y0 + Math.sin(t * .4 + f.bob) * f.amp * slow;
+      }
+      var s = 1 + f.ease * .14;
+      f.o.scale.setScalar(s);
+    }
+
+    if (picked) {
+      picked.getWorldPosition(tmp);
+      tmp.project(camera);
+      if (tmp.z > 1) {
+        setPicked(null); pickedSticky = false;
+      } else {
+        var sx = (tmp.x * .5 + .5) * window.innerWidth;
+        var sy = (-tmp.y * .5 + .5) * window.innerHeight;
+        labelEl.style.left = Math.max(90, Math.min(window.innerWidth - 90, sx)) + 'px';
+        labelEl.style.top = Math.max(110, sy - 26) + 'px';
+      }
+    }
+
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
